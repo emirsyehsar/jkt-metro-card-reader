@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="abc_action_bar_progress_bar_size">40.0dip</dimen>
+    <dimen name="activity_horizontal_margin">16.0dip</dimen>
+    <dimen name="activity_vertical_margin">16.0dip</dimen>
+    <dimen name="fab_margin">16.0dip</dimen>
+    <dimen name="font_size_large">32.0sp</dimen>
+    <dimen name="font_size_medium">24.0sp</dimen>
+    <dimen name="font_size_small">16.0sp</dimen>
+    <dimen name="font_size_xsmall">14.0sp</dimen>
+    <dimen name="font_size_xxsmall">10.0sp</dimen>
+    <dimen name="line_width">1.0dip</dimen>
+    <dimen name="spacing">16.0dip</dimen>
+    <dimen name="text_gap">8.0dip</dimen>
+    <dimen name="text_gap_small">4.0dip</dimen>
+    <dimen name="text_gap_xsmall">2.0dip</dimen>
+</resources>

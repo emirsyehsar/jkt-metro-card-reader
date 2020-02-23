@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:layout_width="fill_parent" android:layout_height="fill_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <TextView
+        android:textSize="@dimen/font_size_small"
+        android:gravity="center_horizontal"
+        android:id="@+id/txt_card_number_label"
+        android:visibility="gone"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/spacing"
+        android:layout_marginRight="@dimen/spacing"
+        android:layout_marginBottom="@dimen/text_gap"
+        android:text="@string/readeractivity.label.cardnumber"
+        android:layout_above="@id/txt_card_number"
+        android:layout_centerHorizontal="true" />
+    <TextView
+        android:textSize="@dimen/font_size_medium"
+        android:textColor="@android:color/black"
+        android:gravity="center_horizontal"
+        android:id="@+id/txt_card_number"
+        android:visibility="gone"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/spacing"
+        android:layout_marginRight="@dimen/spacing"
+        android:layout_marginBottom="@dimen/spacing"
+        android:layout_above="@id/txt_balance_label"
+        android:layout_centerHorizontal="true" />
+    <TextView
+        android:textSize="@dimen/font_size_medium"
+        android:gravity="center_horizontal"
+        android:id="@+id/txt_balance_label"
+        android:visibility="gone"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/spacing"
+        android:layout_marginRight="@dimen/spacing"
+        android:layout_marginBottom="@dimen/text_gap"
+        android:text="@string/readeractivity.label.balance"
+        android:layout_above="@id/txt_balance"
+        android:layout_alignParentLeft="true" />
+    <TextView
+        android:textSize="@dimen/font_size_large"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        android:gravity="center_horizontal"
+        android:id="@+id/txt_balance"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/spacing"
+        android:layout_marginRight="@dimen/spacing"
+        android:layout_marginBottom="@dimen/spacing"
+        android:text="@string/readeractivity.label.tapyourcard"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true" />
+    <TextView
+        android:textSize="@dimen/font_size_small"
+        android:gravity="center_horizontal"
+        android:id="@+id/txt_last_transaction_label"
+        android:visibility="gone" android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/spacing"
+        android:layout_marginRight="@dimen/spacing"
+        android:layout_marginBottom="@dimen/text_gap"
+        android:text="@string/readeractivity.label.lasttransaction"
+        android:layout_below="@id/txt_balance"
+        android:layout_centerHorizontal="true" />
+    <TextView
+        android:textSize="@dimen/font_size_medium"
+        android:textColor="@android:color/black"
+        android:gravity="center_horizontal"
+        android:id="@+id/txt_last_transaction"
+        android:visibility="gone"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/spacing"
+        android:layout_marginRight="@dimen/spacing"
+        android:layout_below="@id/txt_last_transaction_label" />
+</RelativeLayout>

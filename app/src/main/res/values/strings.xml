@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">KMT Reader</string>
+    <string name="abc_action_bar_home_description_format">%1$s, %2$s</string>
+    <string name="abc_action_bar_home_subtitle_description_format">%1$s, %2$s, %3$s</string>
+    <string name="action_settings">Settings</string>
+    <string name="appbar_scrolling_view_behavior">android.support.design.widget.AppBarLayout$ScrollingViewBehavior</string>
+    <string name="bottom_sheet_behavior">android.support.design.widget.BottomSheetBehavior</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="history.format.balancetype.minus">- Rp%d</string>
+    <string name="history.format.balancetype.plus">+ Rp%d</string>
+    <string name="readeractivity.error.ioexception">Terdapat kesalahan. Silahkan coba lagi</string>
+    <string name="readeractivity.error.nfcturnedoff">NFC dimatikan. Harap nyalakan NFC dan restart aplikasi</string>
+    <string name="readeractivity.error.nonfc">Smartphone ini tidak memiliki fitur NFC</string>
+    <string name="readeractivity.error.notkmt">Kartu ini adalah kartu FeliCa namun bukan KMT</string>
+    <string name="readeractivity.label.balance">Saldo:</string>
+    <string name="readeractivity.label.cardnumber">Nomor Kartu:</string>
+    <string name="readeractivity.label.lasttransaction">Transaksi terakhir:</string>
+    <string name="readeractivity.label.rp">Rp%d</string>
+    <string name="readeractivity.label.tapyourcard">Silahkan tap kartu KMT FeliCa Anda</string>
+    <string name="readeractivity.title">Multrip Reader</string>
+</resources>
