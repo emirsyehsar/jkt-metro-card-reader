@@ -13,13 +13,11 @@ import com.example.kmtreader.model.Balance;
 public class ViewPagerAdapter extends FragmentStatePagerAdapter {
 
     private static final int BALANCE_POSITION = 0;
-
     private static final int TAB_COUNT = 2;
 
     private final CharSequence[] TITLES = new CharSequence[] { "Saldo", "Riwayat" };
 
     private BalanceFragment mBalanceFragment;
-
     private HistoryFragment mHistoryFragment;
 
     private String mMessage;

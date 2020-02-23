@@ -19,15 +19,10 @@ public class BalanceFragment extends Fragment {
     private String mMessage;
 
     private TextView txtBalance;
-
     private TextView txtBalanceLabel;
-
     private TextView txtCardNumber;
-
     private TextView txtCardNumberLabel;
-
     private TextView txtLastTransaction;
-
     private TextView txtLastTransactionLabel;
 
     public BalanceFragment() {

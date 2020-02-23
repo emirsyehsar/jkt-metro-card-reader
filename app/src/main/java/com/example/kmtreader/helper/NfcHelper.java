@@ -1,4 +1,4 @@
-package com.example.kmtreader.nfc;
+package com.example.kmtreader.helper;
 
 import android.app.Activity;
 import android.app.PendingIntent;
@@ -16,50 +16,38 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
-public class NfcHandler {
+public class NfcHelper {
+
+    public static final long SERIAL_VERSION_UID = 0L;
+
     private static final byte[] BALANCE_SERVICE_CODE = new byte[] { 16, 23 };
-
     private static final byte[] CHIKATETSU_BALANCE_SERVICE_CODE = new byte[] { 16, (byte) 215 };
-
     //private static final byte[] CARD_NUMBER_SERVICE_CODE = { 48, 11 };
-
-    private static final int FIFTEEN_BLOCK = 15;
-
     //private static final byte[] HISTORY_SERVICE_CODE = new byte[] { 32, 15 };
-
     private static final byte[] TSUUKIN_SYSTEM_CODE = new byte[] { -112, -73 };
-
     private static final byte[] CHIKATETSU_SYSTEM_CODE = new byte[] { -109, (byte) -141 };
-
-    private static final int MAX_ALLOCATED_BYTE_BUFFER = 100;
 
     private static final byte READ_WITHOUT_ENCRYPTION_COMMAND = 6;
 
+    private static final int FIFTEEN_BLOCK = 15;
+    private static final int MAX_ALLOCATED_BYTE_BUFFER = 100;
     private static final int SINGLE_BLOCK = 1;
-
     private static final int SIXTEEN_BLOCK = 16;
 
-    public static final long serialVersionUID = 0L;
-
     private Activity mActivity;
+    private Intent mFirstIntent;
+    private IntentFilter[] mIntentFilters;
+    private String mLastTransaction = "";
+    private PendingIntent mPendingIntent;
 
     private String mBalance = "";
-
     private String mCardNumber = "";
-
-    private Intent mFirstIntent;
-
-    //private ArrayList<History> mHistories = new ArrayList<History>();
-
-    private IntentFilter[] mIntentFilters;
-
-    private String mLastTransaction = "";
-
-    private PendingIntent mPendingIntent;
 
     private String[][] mTechList;
 
-    public NfcHandler(Activity activity) {
+    //private ArrayList<History> mHistories = new ArrayList<History>();
+
+    public NfcHelper(Activity activity) {
         this.mActivity = activity;
         setupPendingIntent();
     }

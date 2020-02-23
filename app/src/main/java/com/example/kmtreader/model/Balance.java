@@ -3,9 +3,7 @@ package com.example.kmtreader.model;
 public class Balance {
 
     private String mBalance;
-
     private String mCardNumber;
-
     private String mLastTransaction;
 
     public String getBalance() {

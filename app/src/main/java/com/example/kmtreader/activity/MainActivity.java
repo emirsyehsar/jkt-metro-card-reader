@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
@@ -15,7 +14,7 @@ import android.widget.Toast;
 import com.example.kmtreader.R;
 import com.example.kmtreader.adapter.ViewPagerAdapter;
 import com.example.kmtreader.model.Balance;
-import com.example.kmtreader.nfc.NfcHandler;
+import com.example.kmtreader.helper.NfcHelper;
 import com.google.android.material.tabs.TabLayout;
 
 public class MainActivity extends AppCompatActivity implements NfcAdapter.ReaderCallback{
@@ -25,7 +24,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     private TabLayout tabLayout;
 
     private NfcAdapter mNfcAdapter;
-    private NfcHandler mNfcHandler;
+    private NfcHelper mNfcHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,11 +43,11 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
         String action = intent.getAction();
         if (action != null && (action.equals("android.nfc.action.TAG_DISCOVERED") || action.equals("android.nfc.action.TECH_DISCOVERED"))) {
             Balance balance = new Balance();
-            balance.setCardNumber(this.mNfcHandler.getCardNumber());
-            balance.setBalance(this.mNfcHandler.getBalance());
-            balance.setLastTransaction(this.mNfcHandler.getLastTransaction());
+            balance.setCardNumber(this.mNfcHelper.getCardNumber());
+            balance.setBalance(this.mNfcHelper.getBalance());
+            balance.setLastTransaction(this.mNfcHelper.getLastTransaction());
             this.viewPagerAdapter.setReadResult(balance);
-            //this.viewPagerAdapter.setHistoryResult(this.mNfcHandler.getHistories());
+            //this.viewPagerAdapter.setHistoryResult(this.mNfcHelper.getHistories());
         }
     }
 
@@ -62,22 +61,22 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
     @Override
     public void onResume() {
         super.onResume();
-        this.mNfcAdapter.enableForegroundDispatch(this, this.mNfcHandler.getPendingIntent(), this.mNfcHandler.getIntentFilters(), this.mNfcHandler.getTechList());
+        this.mNfcAdapter.enableForegroundDispatch(this, this.mNfcHelper.getPendingIntent(), this.mNfcHelper.getIntentFilters(), this.mNfcHelper.getTechList());
         this.mNfcAdapter.enableReaderMode(this, this, NfcAdapter.FLAG_READER_NFC_F | NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK, null);
     }
 
     public void onTagDiscovered(Tag tag) {
         try {
-            this.mNfcHandler.handleTag(tag);
+            this.mNfcHelper.handleTag(tag);
             final Balance balance = new Balance();
-            balance.setCardNumber(this.mNfcHandler.getCardNumber());
-            balance.setBalance(this.mNfcHandler.getBalance());
-            balance.setLastTransaction(this.mNfcHandler.getLastTransaction());
+            balance.setCardNumber(this.mNfcHelper.getCardNumber());
+            balance.setBalance(this.mNfcHelper.getBalance());
+            balance.setLastTransaction(this.mNfcHelper.getLastTransaction());
             runOnUiThread(new Runnable() {
 
                 public void run() {
                     viewPagerAdapter.setReadResult(balance);
-                    //viewPagerAdapter.setHistoryResult(this.mNfcHandler.getHistories());
+                    //viewPagerAdapter.setHistoryResult(this.mNfcHelper.getHistories());
                 }
             });
         } catch (Exception exception) {
@@ -100,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             finish();
             return;
         }
-        this.mNfcHandler = new NfcHandler(this);
+        this.mNfcHelper = new NfcHelper(this);
     }
 
     private void setupView() {
