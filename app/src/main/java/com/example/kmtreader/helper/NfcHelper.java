@@ -20,12 +20,13 @@ public class NfcHelper {
 
     public static final long SERIAL_VERSION_UID = 0L;
 
-    private static final byte[] BALANCE_SERVICE_CODE = new byte[] { 16, 23 };
-    private static final byte[] CHIKATETSU_BALANCE_SERVICE_CODE = new byte[] { 16, (byte) 215 };
-    //private static final byte[] CARD_NUMBER_SERVICE_CODE = { 48, 11 };
+
     //private static final byte[] HISTORY_SERVICE_CODE = new byte[] { 32, 15 };
     private static final byte[] TSUUKIN_SYSTEM_CODE = new byte[] { -112, -73 };
     private static final byte[] CHIKATETSU_SYSTEM_CODE = new byte[] { -109, (byte) -141 };
+    private static final byte[] TSUUKIN_CARD_NUMBER_SERVICE_CODE = { 48, 11 };
+    private static final byte[] TSUUKIN_BALANCE_SERVICE_CODE = new byte[] { 16, 23 };
+    private static final byte[] CHIKATETSU_BALANCE_SERVICE_CODE = new byte[] { 16, (byte) 215 };
 
     private static final byte READ_WITHOUT_ENCRYPTION_COMMAND = 6;
 
@@ -68,6 +69,93 @@ public class NfcHelper {
         }
     }
 
+    public String getBalance() {
+        return mBalance;
+    }
+
+    public String getCardNumber() {
+        return mCardNumber;
+    }
+
+    /*public ArrayList<History> getHistories() {
+        IncrementalChange incrementalChange = $change;
+        return (incrementalChange != null) ? (ArrayList<History>)incrementalChange.access$dispatch("getHistories.()Ljava/util/ArrayList;", new Object[] { this }) : this.mHistories;
+    }*/
+
+    public IntentFilter[] getIntentFilters() {
+        return mIntentFilters;
+    }
+
+    public String getLastTransaction() {
+        return mLastTransaction;
+    }
+
+    public PendingIntent getPendingIntent() {
+        return mPendingIntent;
+    }
+
+    public String[][] getTechList() {
+        return mTechList;
+    }
+
+    public void handleIntent(Intent intent) {
+        String str = intent.getAction();
+        if (str != null && (str.equals("android.nfc.action.TAG_DISCOVERED") || str.equals("android.nfc.action.TECH_DISCOVERED"))) {
+            handleTag((Tag) intent.getParcelableExtra("android.nfc.extra.TAG"));
+        }
+    }
+
+    public void handleTag(Tag paramTag) {
+        NfcF nfcF = NfcF.get(paramTag);
+        byte[] systemCode = nfcF.getSystemCode();
+        if (systemCode[0] == CHIKATETSU_SYSTEM_CODE[0] && systemCode[1] == CHIKATETSU_SYSTEM_CODE[1]) {
+            readCard(nfcF, systemCode, CHIKATETSU_BALANCE_SERVICE_CODE, new byte[0]);
+        } else if (systemCode[0] == TSUUKIN_SYSTEM_CODE[0] && systemCode[1] == TSUUKIN_SYSTEM_CODE[1]) {
+            readCard(nfcF, systemCode, TSUUKIN_BALANCE_SERVICE_CODE, TSUUKIN_CARD_NUMBER_SERVICE_CODE);
+        } else {
+            this.mActivity.runOnUiThread(new Runnable() {
+
+                public void run() {
+                    Toast.makeText(mActivity, mActivity.getString(R.string.readeractivity_error_notkmt), Toast.LENGTH_SHORT).show();
+                }
+            });
+            return;
+        }
+    }
+
+    private void readCard(NfcF nfcF, byte[] systemCode, byte[] balanceSystemCode, byte[] cardNumberSystemCode) {
+        try {
+            nfcF.connect();
+            nfcF.setTimeout(5000);
+            if (nfcF.isConnected()) {
+                byte[] targetIdm = Arrays.copyOfRange(nfcF.transceive(getIdmCommand(systemCode)), 2, 10);
+                byte[] balanceCommand = readWithoutEncryption(targetIdm, SINGLE_BLOCK, balanceSystemCode);
+                //arrayOfByte = readWithoutEncryption(arrayOfByte1, 15, HISTORY_SERVICE_CODE);
+                //arrayOfByte1 = readWithoutEncryptionByBlock(arrayOfByte1, 15, HISTORY_SERVICE_CODE);
+                //arrayOfByte2 = nfcF.transceive(arrayOfByte2);
+                byte[] balanceResult = nfcF.transceive(balanceCommand);
+                //systemCode = nfcF.transceive(systemCode);
+                //arrayOfByte1 = nfcF.transceive(arrayOfByte1);
+                processBalance(balanceResult);
+
+                if (cardNumberSystemCode.length != 0) {
+                    byte[] cardNumberCommand = readWithoutEncryption(targetIdm, SINGLE_BLOCK, cardNumberSystemCode);
+                    byte[] cardNumberResult = nfcF.transceive(cardNumberCommand);
+                    processCardNumber(cardNumberResult);
+                }
+                //processHistory(arrayOfByte, arrayOfByte1);
+            }
+            nfcF.close();
+        } catch (IOException iOException) {
+            iOException.printStackTrace();
+            this.mActivity.runOnUiThread(new Runnable() {
+                public void run() {
+                    Toast.makeText(mActivity, mActivity.getString(R.string.readeractivity_error_ioexception), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
+
     private byte[] getIdmCommand(byte[] systemCode) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(MAX_ALLOCATED_BYTE_BUFFER);
         byteArrayOutputStream.write(0);
@@ -91,9 +179,9 @@ public class NfcHelper {
         this.mLastTransaction = this.mActivity.getString(R.string.readeractivity_label_rp, lastTransaction);
     }
 
-    /*private void processCardNumber(byte[] paramArrayOfbyte) {
+    private void processCardNumber(byte[] paramArrayOfbyte) {
         this.mCardNumber = (new String(Arrays.copyOfRange(paramArrayOfbyte, 13, paramArrayOfbyte.length))).trim();
-    }*/
+    }
 
     /*private void processHistory(byte[] paramArrayOfbyte1, byte[] paramArrayOfbyte2) {
         byte[] arrayOfByte = Arrays.copyOfRange(paramArrayOfbyte1, 13, paramArrayOfbyte1.length);
@@ -160,81 +248,5 @@ public class NfcHelper {
         byte[] result = byteArrayOutputStream.toByteArray();
         result[0] = (byte)result.length;
         return result;
-    }
-
-    public String getBalance() {
-        return mBalance;
-    }
-
-    public String getCardNumber() {
-        return mCardNumber;
-    }
-
-    /*public ArrayList<History> getHistories() {
-        IncrementalChange incrementalChange = $change;
-        return (incrementalChange != null) ? (ArrayList<History>)incrementalChange.access$dispatch("getHistories.()Ljava/util/ArrayList;", new Object[] { this }) : this.mHistories;
-    }*/
-
-    public IntentFilter[] getIntentFilters() {
-        return mIntentFilters;
-    }
-
-    public String getLastTransaction() {
-        return mLastTransaction;
-    }
-
-    public PendingIntent getPendingIntent() {
-        return mPendingIntent;
-    }
-
-    public String[][] getTechList() {
-        return mTechList;
-    }
-
-    public void handleIntent(Intent intent) {
-        String str = intent.getAction();
-        if (str != null && (str.equals("android.nfc.action.TAG_DISCOVERED") || str.equals("android.nfc.action.TECH_DISCOVERED"))) {
-            handleTag((Tag) intent.getParcelableExtra("android.nfc.extra.TAG"));
-        }
-    }
-
-    public void handleTag(Tag paramTag) {
-        NfcF nfcF = NfcF.get(paramTag);
-        byte[] systemCode = nfcF.getSystemCode();
-        if (systemCode[0] != CHIKATETSU_SYSTEM_CODE[0] && systemCode[1] != CHIKATETSU_SYSTEM_CODE[1]) {
-            this.mActivity.runOnUiThread(new Runnable() {
-
-                public void run() {
-                    Toast.makeText(mActivity, mActivity.getString(R.string.readeractivity_error_notkmt), Toast.LENGTH_SHORT).show();
-                }
-            });
-            return;
-        }
-        try {
-            nfcF.connect();
-            nfcF.setTimeout(5000);
-            if (nfcF.isConnected()) {
-                byte[] targetIdm = Arrays.copyOfRange(nfcF.transceive(getIdmCommand(systemCode)), 2, 10);
-                //byte[] arrayOfByte2 = readWithoutEncryption(arrayOfByte1, 1, CARD_NUMBER_SERVICE_CODE);
-                byte[] balanceCommand = readWithoutEncryption(targetIdm, SINGLE_BLOCK, CHIKATETSU_BALANCE_SERVICE_CODE);
-                //arrayOfByte = readWithoutEncryption(arrayOfByte1, 15, HISTORY_SERVICE_CODE);
-                //arrayOfByte1 = readWithoutEncryptionByBlock(arrayOfByte1, 15, HISTORY_SERVICE_CODE);
-                //arrayOfByte2 = nfcF.transceive(arrayOfByte2);
-                byte[] balanceResult = nfcF.transceive(balanceCommand);
-                //systemCode = nfcF.transceive(systemCode);
-                //arrayOfByte1 = nfcF.transceive(arrayOfByte1);
-                //processCardNumber(arrayOfByte2);
-                processBalance(balanceResult);
-                //processHistory(arrayOfByte, arrayOfByte1);
-            }
-            nfcF.close();
-        } catch (IOException iOException) {
-            iOException.printStackTrace();
-            this.mActivity.runOnUiThread(new Runnable() {
-                public void run() {
-                    Toast.makeText(mActivity, mActivity.getString(R.string.readeractivity_error_ioexception), Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
     }
 }
