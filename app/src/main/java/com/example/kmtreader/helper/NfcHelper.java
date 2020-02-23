@@ -9,16 +9,16 @@ import android.nfc.tech.NfcF;
 import android.widget.Toast;
 
 import com.example.kmtreader.R;
+import com.example.kmtreader.model.History;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class NfcHelper {
-
-    public static final long SERIAL_VERSION_UID = 0L;
 
     private static final byte[] TSUUKIN_HISTORY_SERVICE_CODE = new byte[] { 32, 15 };
     private static final byte[] TSUUKIN_SYSTEM_CODE = new byte[] { -112, -73 };
@@ -48,7 +48,7 @@ public class NfcHelper {
 
     private String[][] mTechList;
 
-    //private ArrayList<History> mHistories = new ArrayList<History>();
+    private ArrayList<History> mHistories = new ArrayList<>();
 
     public NfcHelper(Activity activity) {
         this.mActivity = activity;
