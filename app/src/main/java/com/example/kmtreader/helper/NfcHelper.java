@@ -32,7 +32,10 @@ public class NfcHelper {
     private static final int FIFTEEN_BLOCK = 15;
     private static final int MAX_ALLOCATED_BYTE_BUFFER = 100;
     private static final int SINGLE_BLOCK = 1;
-    private static final int SIXTEEN_BLOCK = 16;
+    private static final int BLOCK_SIZE = 16;
+    private static final int TOTAL_BLOCK_SIZE = 256;
+    private static final int RESPONSE_DATA_START_INDEX = 13;
+    private static final int BLOCK_LIST_COMMAND = 128;
 
     private Activity mActivity;
     private Intent mFirstIntent;
@@ -129,7 +132,6 @@ public class NfcHelper {
             if (nfcF.isConnected()) {
                 byte[] targetIdm = Arrays.copyOfRange(nfcF.transceive(getIdmCommand(systemCode)), 2, 10);
                 byte[] balanceCommand = readWithoutEncryption(targetIdm, SINGLE_BLOCK, balanceSystemCode);
-                //arrayOfByte2 = nfcF.transceive(arrayOfByte2);
                 byte[] balanceResult = nfcF.transceive(balanceCommand);
                 processBalance(balanceResult);
 
@@ -140,7 +142,7 @@ public class NfcHelper {
                 }
                 if (historySystemCode.length != 0) {
                     byte[] historyCommand = readWithoutEncryption(targetIdm, 15, historySystemCode);
-                    byte[] historyFinalBlockCommand = readWithoutEncryptionByBlock(targetIdm, 15, historySystemCode);
+                    byte[] historyFinalBlockCommand = readWithoutEncryptionByBlock(targetIdm, FIFTEEN_BLOCK, historySystemCode);
                     byte[] historyResult = nfcF.transceive(historyCommand);
                     byte[] historyFinalBlockResult = nfcF.transceive(historyFinalBlockCommand);
                     processHistory(historyResult, historyFinalBlockResult);
@@ -170,28 +172,28 @@ public class NfcHelper {
         return idmCommand;
     }
 
-    private void processBalance(byte[] balanceRawByte) {
-        byte[] unknownByte = Arrays.copyOfRange(balanceRawByte, 13, balanceRawByte.length);
-        byte[] balanceByte = Arrays.copyOfRange(unknownByte, 0, 4);
-        byte[] arrayOfByte = Arrays.copyOfRange(unknownByte, 4, 8);
-        int balance = ByteBuffer.wrap(balanceByte).order(ByteOrder.LITTLE_ENDIAN).getInt();
-        int lastTransaction = ByteBuffer.wrap(arrayOfByte).order(ByteOrder.LITTLE_ENDIAN).getInt();
+    private void processBalance(byte[] balanceBlock) {
+        byte[] trimmedBalanceBlock = Arrays.copyOfRange(balanceBlock, RESPONSE_DATA_START_INDEX, balanceBlock.length);
+        byte[] rawBalanceByte = Arrays.copyOfRange(trimmedBalanceBlock, 0, 4);
+        byte[] rawLastTransaction = Arrays.copyOfRange(trimmedBalanceBlock, 4, 8);
+        int balance = ByteBuffer.wrap(rawBalanceByte).order(ByteOrder.LITTLE_ENDIAN).getInt();
+        int lastTransaction = ByteBuffer.wrap(rawLastTransaction).order(ByteOrder.LITTLE_ENDIAN).getInt();
         this.mBalance = this.mActivity.getString(R.string.readeractivity_label_rp, balance);
         this.mLastTransaction = this.mActivity.getString(R.string.readeractivity_label_rp, lastTransaction);
     }
 
     private void processCardNumber(byte[] paramArrayOfbyte) {
-        this.mCardNumber = (new String(Arrays.copyOfRange(paramArrayOfbyte, 13, paramArrayOfbyte.length))).trim();
+        this.mCardNumber = (new String(Arrays.copyOfRange(paramArrayOfbyte, RESPONSE_DATA_START_INDEX, paramArrayOfbyte.length))).trim();
     }
 
     private void processHistory(byte[] paramArrayOfbyte1, byte[] paramArrayOfbyte2) {
-        byte[] trimmedRawHistoryBlocks = Arrays.copyOfRange(paramArrayOfbyte1, 13, paramArrayOfbyte1.length);
-        byte[] trimmedRawHistoryFinalBlock = Arrays.copyOfRange(paramArrayOfbyte2, 13, paramArrayOfbyte2.length);
+        byte[] trimmedRawHistoryBlocks = Arrays.copyOfRange(paramArrayOfbyte1, RESPONSE_DATA_START_INDEX, paramArrayOfbyte1.length);
+        byte[] trimmedRawHistoryFinalBlock = Arrays.copyOfRange(paramArrayOfbyte2, RESPONSE_DATA_START_INDEX, paramArrayOfbyte2.length);
         byte[] rawHistoryAllBlocks = new byte[trimmedRawHistoryBlocks.length + trimmedRawHistoryFinalBlock.length];
         System.arraycopy(trimmedRawHistoryBlocks, 0, rawHistoryAllBlocks, 0, trimmedRawHistoryBlocks.length);
         System.arraycopy(trimmedRawHistoryFinalBlock, 0, rawHistoryAllBlocks, trimmedRawHistoryBlocks.length, trimmedRawHistoryFinalBlock.length);
         //mHistories.clear();
-        for (int i = 0; i < 256; i += 16) {
+        for (int i = 0; i < TOTAL_BLOCK_SIZE; i += BLOCK_SIZE) {
             byte[] rawTimestamp = Arrays.copyOfRange(rawHistoryAllBlocks, i, i + 4);
             byte[] rawBalanceChange = Arrays.copyOfRange(rawHistoryAllBlocks, i + 4, i + 8);
             byte[] rawTransactionCode = Arrays.copyOfRange(rawHistoryAllBlocks, i + 8, i + 10);
@@ -212,10 +214,10 @@ public class NfcHelper {
     }
 
     private byte[] readWithoutEncryption(byte[] idm, int blockLength, byte[] serviceCode) throws IOException {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(100);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(MAX_ALLOCATED_BYTE_BUFFER);
         //Read Without Encryption Command Code: 0x06
         byteArrayOutputStream.write(0);
-        byteArrayOutputStream.write(6);
+        byteArrayOutputStream.write(READ_WITHOUT_ENCRYPTION_COMMAND);
         byteArrayOutputStream.write(idm);
         //Read Without Encryption Number of Service: 1
         byteArrayOutputStream.write(1);
@@ -224,8 +226,8 @@ public class NfcHelper {
         byteArrayOutputStream.write(serviceCode[0]);
         byteArrayOutputStream.write(blockLength);
         for (int i = 0; i < blockLength; i++) {
-            byteArrayOutputStream.write(128);
-            byteArrayOutputStream.write(i);
+            byteArrayOutputStream.write(BLOCK_LIST_COMMAND);
+            byteArrayOutputStream.write(i); //Block Index
         }
         byte[] result = byteArrayOutputStream.toByteArray();
         result[0] = (byte)result.length;
@@ -233,16 +235,18 @@ public class NfcHelper {
     }
 
     private byte[] readWithoutEncryptionByBlock(byte[] idm, int blockLength, byte[] serviceCode) throws IOException {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(100);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(MAX_ALLOCATED_BYTE_BUFFER);
+        //Read Without Encryption Command Code: 0x06
         byteArrayOutputStream.write(0);
-        byteArrayOutputStream.write(6);
+        byteArrayOutputStream.write(READ_WITHOUT_ENCRYPTION_COMMAND);
         byteArrayOutputStream.write(idm);
+        //Read Without Encryption Number of Service: 1
         byteArrayOutputStream.write(1);
         byteArrayOutputStream.write(serviceCode[1]);
         byteArrayOutputStream.write(serviceCode[0]);
-        byteArrayOutputStream.write(1);
-        byteArrayOutputStream.write(128);
-        byteArrayOutputStream.write(blockLength);
+        byteArrayOutputStream.write(1); //Block Length
+        byteArrayOutputStream.write(BLOCK_LIST_COMMAND);
+        byteArrayOutputStream.write(blockLength); //Block Index
         byte[] result = byteArrayOutputStream.toByteArray();
         result[0] = (byte)result.length;
         return result;
