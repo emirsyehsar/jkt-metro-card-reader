@@ -20,8 +20,7 @@ public class NfcHelper {
 
     public static final long SERIAL_VERSION_UID = 0L;
 
-
-    //private static final byte[] HISTORY_SERVICE_CODE = new byte[] { 32, 15 };
+    private static final byte[] TSUUKIN_HISTORY_SERVICE_CODE = new byte[] { 32, 15 };
     private static final byte[] TSUUKIN_SYSTEM_CODE = new byte[] { -112, -73 };
     private static final byte[] CHIKATETSU_SYSTEM_CODE = new byte[] { -109, (byte) -141 };
     private static final byte[] TSUUKIN_CARD_NUMBER_SERVICE_CODE = { 48, 11 };
@@ -109,9 +108,9 @@ public class NfcHelper {
         NfcF nfcF = NfcF.get(paramTag);
         byte[] systemCode = nfcF.getSystemCode();
         if (systemCode[0] == CHIKATETSU_SYSTEM_CODE[0] && systemCode[1] == CHIKATETSU_SYSTEM_CODE[1]) {
-            readCard(nfcF, systemCode, CHIKATETSU_BALANCE_SERVICE_CODE, new byte[0]);
+            readCard(nfcF, systemCode, CHIKATETSU_BALANCE_SERVICE_CODE, new byte[0], new byte[0]);
         } else if (systemCode[0] == TSUUKIN_SYSTEM_CODE[0] && systemCode[1] == TSUUKIN_SYSTEM_CODE[1]) {
-            readCard(nfcF, systemCode, TSUUKIN_BALANCE_SERVICE_CODE, TSUUKIN_CARD_NUMBER_SERVICE_CODE);
+            readCard(nfcF, systemCode, TSUUKIN_BALANCE_SERVICE_CODE, TSUUKIN_CARD_NUMBER_SERVICE_CODE, TSUUKIN_HISTORY_SERVICE_CODE);
         } else {
             this.mActivity.runOnUiThread(new Runnable() {
 
@@ -123,19 +122,15 @@ public class NfcHelper {
         }
     }
 
-    private void readCard(NfcF nfcF, byte[] systemCode, byte[] balanceSystemCode, byte[] cardNumberSystemCode) {
+    private void readCard(NfcF nfcF, byte[] systemCode, byte[] balanceSystemCode, byte[] cardNumberSystemCode, byte[] historySystemCode) {
         try {
             nfcF.connect();
             nfcF.setTimeout(5000);
             if (nfcF.isConnected()) {
                 byte[] targetIdm = Arrays.copyOfRange(nfcF.transceive(getIdmCommand(systemCode)), 2, 10);
                 byte[] balanceCommand = readWithoutEncryption(targetIdm, SINGLE_BLOCK, balanceSystemCode);
-                //arrayOfByte = readWithoutEncryption(arrayOfByte1, 15, HISTORY_SERVICE_CODE);
-                //arrayOfByte1 = readWithoutEncryptionByBlock(arrayOfByte1, 15, HISTORY_SERVICE_CODE);
                 //arrayOfByte2 = nfcF.transceive(arrayOfByte2);
                 byte[] balanceResult = nfcF.transceive(balanceCommand);
-                //systemCode = nfcF.transceive(systemCode);
-                //arrayOfByte1 = nfcF.transceive(arrayOfByte1);
                 processBalance(balanceResult);
 
                 if (cardNumberSystemCode.length != 0) {
@@ -143,7 +138,13 @@ public class NfcHelper {
                     byte[] cardNumberResult = nfcF.transceive(cardNumberCommand);
                     processCardNumber(cardNumberResult);
                 }
-                //processHistory(arrayOfByte, arrayOfByte1);
+                if (historySystemCode.length != 0) {
+                    byte[] historyCommand = readWithoutEncryption(targetIdm, 15, historySystemCode);
+                    byte[] historyFinalBlockCommand = readWithoutEncryptionByBlock(targetIdm, 15, historySystemCode);
+                    byte[] historyResult = nfcF.transceive(historyCommand);
+                    byte[] historyFinalBlockResult = nfcF.transceive(historyFinalBlockCommand);
+                    processHistory(historyResult, historyFinalBlockResult);
+                }
             }
             nfcF.close();
         } catch (IOException iOException) {
@@ -183,45 +184,42 @@ public class NfcHelper {
         this.mCardNumber = (new String(Arrays.copyOfRange(paramArrayOfbyte, 13, paramArrayOfbyte.length))).trim();
     }
 
-    /*private void processHistory(byte[] paramArrayOfbyte1, byte[] paramArrayOfbyte2) {
-        byte[] arrayOfByte = Arrays.copyOfRange(paramArrayOfbyte1, 13, paramArrayOfbyte1.length);
-        paramArrayOfbyte2 = Arrays.copyOfRange(paramArrayOfbyte2, 13, paramArrayOfbyte2.length);
-        paramArrayOfbyte1 = new byte[arrayOfByte.length + paramArrayOfbyte2.length];
-        System.arraycopy(arrayOfByte, 0, paramArrayOfbyte1, 0, arrayOfByte.length);
-        System.arraycopy(paramArrayOfbyte2, 0, paramArrayOfbyte1, arrayOfByte.length, paramArrayOfbyte2.length);
-        this.mHistories.clear();
-        int i = 0;
-        while (true) {
-            if (i < 256) {
-                paramArrayOfbyte2 = Arrays.copyOfRange(paramArrayOfbyte1, i, i + 4);
-                arrayOfByte = Arrays.copyOfRange(paramArrayOfbyte1, i + 4, i + 8);
-                byte[] arrayOfByte1 = Arrays.copyOfRange(paramArrayOfbyte1, i + 8, i + 10);
-                byte[] arrayOfByte2 = Arrays.copyOfRange(paramArrayOfbyte1, i + 10, i + 11);
-                byte[] arrayOfByte3 = Arrays.copyOfRange(paramArrayOfbyte1, i + 12, i + 13);
-                String str = MultripUtil.getJourneyDate(paramArrayOfbyte2);
-                if (str != null) {
-                    History history = new History();
-                    history.setJourneyDate(str);
-                    history.setTimestamp(MultripUtil.getEpochTime(paramArrayOfbyte2));
-                    history.setBalanceChange(MultripUtil.getBalanceChange(arrayOfByte));
-                    history.setCredit(MultripUtil.getCreditType(arrayOfByte3));
-                    history.setStationCode(MultripUtil.getStationCode(arrayOfByte2));
-                    history.setTransactionCode(MultripUtil.getTransactionCode(arrayOfByte1));
-                    this.mHistories.add(history);
-                }
-                i += 16;
-                continue;
-            }
-            return;
+    private void processHistory(byte[] paramArrayOfbyte1, byte[] paramArrayOfbyte2) {
+        byte[] trimmedRawHistoryBlocks = Arrays.copyOfRange(paramArrayOfbyte1, 13, paramArrayOfbyte1.length);
+        byte[] trimmedRawHistoryFinalBlock = Arrays.copyOfRange(paramArrayOfbyte2, 13, paramArrayOfbyte2.length);
+        byte[] rawHistoryAllBlocks = new byte[trimmedRawHistoryBlocks.length + trimmedRawHistoryFinalBlock.length];
+        System.arraycopy(trimmedRawHistoryBlocks, 0, rawHistoryAllBlocks, 0, trimmedRawHistoryBlocks.length);
+        System.arraycopy(trimmedRawHistoryFinalBlock, 0, rawHistoryAllBlocks, trimmedRawHistoryBlocks.length, trimmedRawHistoryFinalBlock.length);
+        //mHistories.clear();
+        for (int i = 0; i < 256; i += 16) {
+            byte[] rawTimestamp = Arrays.copyOfRange(rawHistoryAllBlocks, i, i + 4);
+            byte[] rawBalanceChange = Arrays.copyOfRange(rawHistoryAllBlocks, i + 4, i + 8);
+            byte[] rawTransactionCode = Arrays.copyOfRange(rawHistoryAllBlocks, i + 8, i + 10);
+            byte[] rawStationCode = Arrays.copyOfRange(rawHistoryAllBlocks, i + 10, i + 11);
+            byte[] rawCreditType = Arrays.copyOfRange(rawHistoryAllBlocks, i + 12, i + 13);
+            /*String journeyDate = MultripUtil.getJourneyDate(rawTimestamp);
+            if (str != null) {
+                History history = new History();
+                history.setJourneyDate(journeyDate);
+                history.setTimestamp(MultripUtil.getEpochTime(rawTimestamp));
+                history.setBalanceChange(MultripUtil.getBalanceChange(rawBalanceChange));
+                history.setCredit(MultripUtil.getCreditType(rawCreditType));
+                history.setStationCode(MultripUtil.getStationCode(rawStationCode));
+                history.setTransactionCode(MultripUtil.getTransactionCode(rawTransactionCode));
+                this.mHistories.add(history);
+            }*/
         }
-    }*/
+    }
 
     private byte[] readWithoutEncryption(byte[] idm, int blockLength, byte[] serviceCode) throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(100);
+        //Read Without Encryption Command Code: 0x06
         byteArrayOutputStream.write(0);
         byteArrayOutputStream.write(6);
         byteArrayOutputStream.write(idm);
+        //Read Without Encryption Number of Service: 1
         byteArrayOutputStream.write(1);
+        //Read Without Encryption Service Code (Based on total service above)
         byteArrayOutputStream.write(serviceCode[1]);
         byteArrayOutputStream.write(serviceCode[0]);
         byteArrayOutputStream.write(blockLength);
