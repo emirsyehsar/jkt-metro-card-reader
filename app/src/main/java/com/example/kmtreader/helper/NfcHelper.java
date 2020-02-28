@@ -10,6 +10,8 @@ import android.widget.Toast;
 
 import com.example.kmtreader.R;
 import com.example.kmtreader.model.History;
+import com.example.kmtreader.model.enums.Station;
+import com.example.kmtreader.util.MultripUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -17,6 +19,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
 
 public class NfcHelper {
 
@@ -79,10 +82,9 @@ public class NfcHelper {
         return mCardNumber;
     }
 
-    /*public ArrayList<History> getHistories() {
-        IncrementalChange incrementalChange = $change;
-        return (incrementalChange != null) ? (ArrayList<History>)incrementalChange.access$dispatch("getHistories.()Ljava/util/ArrayList;", new Object[] { this }) : this.mHistories;
-    }*/
+    public ArrayList<History> getHistories() {
+        return mHistories;
+    }
 
     public IntentFilter[] getIntentFilters() {
         return mIntentFilters;
@@ -192,24 +194,25 @@ public class NfcHelper {
         byte[] rawHistoryAllBlocks = new byte[trimmedRawHistoryBlocks.length + trimmedRawHistoryFinalBlock.length];
         System.arraycopy(trimmedRawHistoryBlocks, 0, rawHistoryAllBlocks, 0, trimmedRawHistoryBlocks.length);
         System.arraycopy(trimmedRawHistoryFinalBlock, 0, rawHistoryAllBlocks, trimmedRawHistoryBlocks.length, trimmedRawHistoryFinalBlock.length);
-        //mHistories.clear();
+        mHistories.clear();
+        Map<Integer, Station> stationMap = Station.getStationMap();
         for (int i = 0; i < TOTAL_BLOCK_SIZE; i += BLOCK_SIZE) {
             byte[] rawTimestamp = Arrays.copyOfRange(rawHistoryAllBlocks, i, i + 4);
             byte[] rawBalanceChange = Arrays.copyOfRange(rawHistoryAllBlocks, i + 4, i + 8);
             byte[] rawTransactionCode = Arrays.copyOfRange(rawHistoryAllBlocks, i + 8, i + 10);
             byte[] rawStationCode = Arrays.copyOfRange(rawHistoryAllBlocks, i + 10, i + 11);
             byte[] rawCreditType = Arrays.copyOfRange(rawHistoryAllBlocks, i + 12, i + 13);
-            /*String journeyDate = MultripUtil.getJourneyDate(rawTimestamp);
-            if (str != null) {
+            String journeyDate = MultripUtil.getJourneyDate(rawTimestamp);
+            if (journeyDate != null) {
                 History history = new History();
                 history.setJourneyDate(journeyDate);
                 history.setTimestamp(MultripUtil.getEpochTime(rawTimestamp));
                 history.setBalanceChange(MultripUtil.getBalanceChange(rawBalanceChange));
                 history.setCredit(MultripUtil.getCreditType(rawCreditType));
-                history.setStationCode(MultripUtil.getStationCode(rawStationCode));
-                history.setTransactionCode(MultripUtil.getTransactionCode(rawTransactionCode));
+                history.setStation(stationMap.get(MultripUtil.getStationCode(rawStationCode)));
+                history.setTransaction(MultripUtil.getTransaction(rawTransactionCode));
                 this.mHistories.add(history);
-            }*/
+            }
         }
     }
 

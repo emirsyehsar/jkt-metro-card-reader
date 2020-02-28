@@ -1,5 +1,8 @@
 package com.example.kmtreader.model;
 
+import com.example.kmtreader.model.enums.Station;
+import com.example.kmtreader.model.enums.Transaction;
+
 public class History {
 
     private int mBalanceChange;
@@ -8,11 +11,11 @@ public class History {
 
     private String mJourneyDate;
 
-    private int mStationCode;
+    private Station mStation;
 
     private long mTimestamp;
 
-    private int mTransactionCode;
+    private Transaction mTransaction;
 
     public int getBalanceChange() {
         return mBalanceChange;
@@ -38,12 +41,12 @@ public class History {
         this.mJourneyDate = journeyDate;
     }
 
-    public int getStationCode() {
-        return mStationCode;
+    public Station getStation() {
+        return mStation;
     }
 
-    public void setStationCode(int stationCode) {
-        this.mStationCode = stationCode;
+    public void setStation(Station station) {
+        mStation = station;
     }
 
     public long getTimestamp() {
@@ -54,11 +57,11 @@ public class History {
         this.mTimestamp = timestamp;
     }
 
-    public int getTransactionCode() {
-        return mTransactionCode;
+    public Transaction getTransaction() {
+        return mTransaction;
     }
 
-    public void setTransactionCode(int transactionCode) {
-        this.mTransactionCode = transactionCode;
+    public void setTransaction(Transaction transaction) {
+        mTransaction = transaction;
     }
 }
