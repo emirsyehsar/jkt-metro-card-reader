@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <TextView
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        android:id="@id/txt_date"
+        android:visibility="gone"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/spacing"
+        android:layout_marginTop="@dimen/text_gap"
+        android:layout_marginRight="@dimen/spacing"
+        android:layout_marginBottom="@dimen/text_gap"
+        tools:visibility="visible"
+        tools:text="29 Jan 2019" />
+    <View
+        android:id="@+id/separator_top"
+        android:background="@android:color/darker_gray"
+        android:visibility="gone"
+        android:layout_width="fill_parent"
+        android:layout_height="@dimen/line_width"
+        android:layout_marginLeft="@dimen/spacing"
+        android:layout_marginRight="@dimen/spacing"
+        tools:visibility="visible" />
+    <LinearLayout android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:layout_gravity="center_vertical"
+            android:id="@+id/img_transaction_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/spacing"
+            android:layout_marginTop="@dimen/spacing"
+            android:layout_marginBottom="@dimen/spacing"
+            android:layout_centerVertical="true"
+            tools:src="@drawable/icon_turnstile"/>
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0.0dip"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/text_gap"
+            android:layout_marginTop="@dimen/spacing"
+            android:layout_marginBottom="@dimen/spacing"
+            android:layout_weight="1.0" >
+            <TextView android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:id="@+id/txt_transaction_type"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/text_gap_xsmall"
+                tools:text="TAP OUT"/>
+            <TextView
+                android:textSize="@dimen/font_size_xsmall"
+                android:id="@+id/txt_station_name"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/text_gap_xsmall"
+                tools:text="Manggarai"/>
+            <TextView
+                android:textSize="@dimen/font_size_xsmall"
+                android:id="@+id/txt_time"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                tools:text="19:30"/>
+        </LinearLayout>
+        <TextView
+            android:layout_gravity="center_vertical"
+            android:id="@+id/txt_balance_change"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/text_gap"
+            android:layout_marginRight="@dimen/spacing"
+            tools:text="-Rp3000"/>
+    </LinearLayout>
+    <View
+        android:id="@+id/separator_bottom"
+        android:background="@android:color/darker_gray"
+        android:layout_width="fill_parent"
+        android:layout_height="@dimen/line_width"
+        android:layout_marginLeft="@dimen/spacing"
+        android:layout_marginRight="@dimen/spacing" />
+</LinearLayout>
