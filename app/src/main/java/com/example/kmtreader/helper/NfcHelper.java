@@ -184,13 +184,13 @@ public class NfcHelper {
         this.mLastTransaction = this.mActivity.getString(R.string.readeractivity_label_rp, lastTransaction);
     }
 
-    private void processCardNumber(byte[] paramArrayOfbyte) {
-        this.mCardNumber = (new String(Arrays.copyOfRange(paramArrayOfbyte, RESPONSE_DATA_START_INDEX, paramArrayOfbyte.length))).trim();
+    private void processCardNumber(byte[] cardNumberRawByte) {
+        this.mCardNumber = (new String(Arrays.copyOfRange(cardNumberRawByte, RESPONSE_DATA_START_INDEX, cardNumberRawByte.length))).trim();
     }
 
-    private void processHistory(byte[] paramArrayOfbyte1, byte[] paramArrayOfbyte2) {
-        byte[] trimmedRawHistoryBlocks = Arrays.copyOfRange(paramArrayOfbyte1, RESPONSE_DATA_START_INDEX, paramArrayOfbyte1.length);
-        byte[] trimmedRawHistoryFinalBlock = Arrays.copyOfRange(paramArrayOfbyte2, RESPONSE_DATA_START_INDEX, paramArrayOfbyte2.length);
+    private void processHistory(byte[] rawHistoryBlocks, byte[] rawHistoryFinalBlocks) {
+        byte[] trimmedRawHistoryBlocks = Arrays.copyOfRange(rawHistoryBlocks, RESPONSE_DATA_START_INDEX, rawHistoryBlocks.length);
+        byte[] trimmedRawHistoryFinalBlock = Arrays.copyOfRange(rawHistoryFinalBlocks, RESPONSE_DATA_START_INDEX, rawHistoryFinalBlocks.length);
         byte[] rawHistoryAllBlocks = new byte[trimmedRawHistoryBlocks.length + trimmedRawHistoryFinalBlock.length];
         System.arraycopy(trimmedRawHistoryBlocks, 0, rawHistoryAllBlocks, 0, trimmedRawHistoryBlocks.length);
         System.arraycopy(trimmedRawHistoryFinalBlock, 0, rawHistoryAllBlocks, trimmedRawHistoryBlocks.length, trimmedRawHistoryFinalBlock.length);
