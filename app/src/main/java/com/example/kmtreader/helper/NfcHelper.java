@@ -23,12 +23,12 @@ import java.util.Map;
 
 public class NfcHelper {
 
-    private static final byte[] TSUUKIN_HISTORY_SERVICE_CODE = new byte[] { 32, 15 };
-    private static final byte[] TSUUKIN_SYSTEM_CODE = new byte[] { -112, -73 };
-    private static final byte[] CHIKATETSU_SYSTEM_CODE = new byte[] { -109, (byte) -141 };
-    private static final byte[] TSUUKIN_CARD_NUMBER_SERVICE_CODE = { 48, 11 };
-    private static final byte[] TSUUKIN_BALANCE_SERVICE_CODE = new byte[] { 16, 23 };
-    private static final byte[] CHIKATETSU_BALANCE_SERVICE_CODE = new byte[] { 16, (byte) 215 };
+    private static final byte[] COMMUTER_HISTORY_SERVICE_CODE = new byte[] { 32, 15 };
+    private static final byte[] COMMUTER_SYSTEM_CODE = new byte[] { -112, -73 };
+    private static final byte[] METRO_SYSTEM_CODE = new byte[] { -109, (byte) -141 };
+    private static final byte[] COMMUTER_CARD_NUMBER_SERVICE_CODE = { 48, 11 };
+    private static final byte[] COMMUTER_BALANCE_SERVICE_CODE = new byte[] { 16, 23 };
+    private static final byte[] METRO_BALANCE_SERVICE_CODE = new byte[] { 16, (byte) 215 };
 
     private static final byte READ_WITHOUT_ENCRYPTION_COMMAND = 6;
 
@@ -112,10 +112,10 @@ public class NfcHelper {
     public void handleTag(Tag paramTag) {
         NfcF nfcF = NfcF.get(paramTag);
         byte[] systemCode = nfcF.getSystemCode();
-        if (systemCode[0] == CHIKATETSU_SYSTEM_CODE[0] && systemCode[1] == CHIKATETSU_SYSTEM_CODE[1]) {
-            readCard(nfcF, systemCode, CHIKATETSU_BALANCE_SERVICE_CODE, new byte[0], new byte[0]);
-        } else if (systemCode[0] == TSUUKIN_SYSTEM_CODE[0] && systemCode[1] == TSUUKIN_SYSTEM_CODE[1]) {
-            readCard(nfcF, systemCode, TSUUKIN_BALANCE_SERVICE_CODE, TSUUKIN_CARD_NUMBER_SERVICE_CODE, TSUUKIN_HISTORY_SERVICE_CODE);
+        if (systemCode[0] == METRO_SYSTEM_CODE[0] && systemCode[1] == METRO_SYSTEM_CODE[1]) {
+            readCard(nfcF, systemCode, METRO_BALANCE_SERVICE_CODE, new byte[0], new byte[0]);
+        } else if (systemCode[0] == COMMUTER_SYSTEM_CODE[0] && systemCode[1] == COMMUTER_SYSTEM_CODE[1]) {
+            readCard(nfcF, systemCode, COMMUTER_BALANCE_SERVICE_CODE, COMMUTER_CARD_NUMBER_SERVICE_CODE, COMMUTER_HISTORY_SERVICE_CODE);
         } else {
             this.mActivity.runOnUiThread(new Runnable() {
 
