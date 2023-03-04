@@ -15,6 +15,11 @@ public class MultripUtil {
 
     private static final long EPOCH_2000 = 946684800L;
 
+    private static final SimpleDateFormat SIMPLE_DATE_FORMAT =
+            new SimpleDateFormat("dd MMMM yyyy");
+    private static final SimpleDateFormat SIMPLE_HOUR_FORMAT =
+            new SimpleDateFormat("HH:mm");
+
     public static int byteArrayToInt(byte[] byteArray) {
         return ByteBuffer.wrap(byteArray).getInt();
     }
@@ -44,17 +49,15 @@ public class MultripUtil {
             return null;
         TimeZone timeZone = TimeZone.getTimeZone("GMT+0");
         Date date = new Date(TimeUnit.SECONDS.toMillis(l));
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMMM yyyy");
-        simpleDateFormat.setTimeZone(timeZone);
-        return simpleDateFormat.format(date);
+        SIMPLE_DATE_FORMAT.setTimeZone(timeZone);
+        return SIMPLE_DATE_FORMAT.format(date);
     }
 
     public static String getJourneyTime(long timestamp) {
         TimeZone timeZone = TimeZone.getTimeZone("GMT+0");
         Date date = new Date(TimeUnit.SECONDS.toMillis(timestamp));
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm");
-        simpleDateFormat.setTimeZone(timeZone);
-        return simpleDateFormat.format(date);
+        SIMPLE_HOUR_FORMAT.setTimeZone(timeZone);
+        return SIMPLE_HOUR_FORMAT.format(date);
     }
 
     public static String getJourneyTime(byte[] paramArrayOfbyte) {
@@ -63,9 +66,8 @@ public class MultripUtil {
             l = (l << 8L) + (paramArrayOfbyte[i] & 0xFF);
         TimeZone timeZone = TimeZone.getTimeZone("GMT+0");
         Date date = new Date(TimeUnit.SECONDS.toMillis(l + EPOCH_2000));
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm");
-        simpleDateFormat.setTimeZone(timeZone);
-        return simpleDateFormat.format(date);
+        SIMPLE_HOUR_FORMAT.setTimeZone(timeZone);
+        return SIMPLE_HOUR_FORMAT.format(date);
     }
 
     public static int getStationCode(byte[] rawStationCode) {

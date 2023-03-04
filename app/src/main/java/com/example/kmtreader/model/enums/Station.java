@@ -41,6 +41,7 @@ public enum Station {
 
     public static Map<Integer, Station> getStationMap() {
         List<Station> stationList = Arrays.asList(values());
-        return stationList.stream().collect(Collectors.toMap(Station::getStationCode, Function.identity()));
+        return stationList.stream()
+                .collect(Collectors.toMap(Station::getStationCode, Function.identity()));
     }
 }
