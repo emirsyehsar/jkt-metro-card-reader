@@ -12,6 +12,7 @@ import com.example.kmtreader.model.Balance;
 import com.example.kmtreader.model.History;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class ViewPagerAdapter extends FragmentStatePagerAdapter {
 
@@ -40,11 +41,7 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
 
     @Override
     public CharSequence getPageTitle(int position) {
-        if (position == BALANCE_POSITION) {
-            return "BALANCE";
-        } else {
-            return "HISTORY";
-        }
+        return TITLES[position];
     }
 
     @Override
@@ -65,10 +62,10 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
         return fragment;
     }
 
-    public void setHistoryResult(ArrayList<History> historyList) {
+    public void setHistoryResult(List<History> historyList) {
         //TODO EMIR : 28-2-2020 PLEASE REMOVE THIS AFTER HISTORY UI IS READY. FOR DEBUG PURPOSE ONLY
-        ArrayList<History> anotherHistoryList = historyList;
-//        this.mHistoryFragment.setHistoryResult(historyList);
+        //ArrayList<History> anotherHistoryList = historyList;
+        this.mHistoryFragment.setHistoryResult(historyList);
     }
 
     public void setMessage(String message) {

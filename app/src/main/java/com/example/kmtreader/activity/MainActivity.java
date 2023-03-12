@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity implements NfcAdapter.Reader
             balance.setLastTransaction(this.mNfcHelper.getLastTransaction());
             runOnUiThread(() -> {
                 viewPagerAdapter.setReadResult(balance);
-                //viewPagerAdapter.setHistoryResult(this.mNfcHelper.getHistories());
+                viewPagerAdapter.setHistoryResult(this.mNfcHelper.getHistories());
             });
         } catch (Exception exception) {
             exception.printStackTrace();

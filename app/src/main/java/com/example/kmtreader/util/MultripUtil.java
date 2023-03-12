@@ -13,6 +13,8 @@ import java.util.concurrent.TimeUnit;
 public class MultripUtil {
     private static final byte CREDIT_TYPE = 1;
 
+    private static final int TRANSACTION_CODE_OFFSET = 2;
+
     private static final long EPOCH_2000 = 946684800L;
 
     private static final SimpleDateFormat SIMPLE_DATE_FORMAT =
@@ -74,11 +76,19 @@ public class MultripUtil {
         return byteArrayToInt(rawStationCode);
     }
 
-    public static int getTransactionCode(byte[] rawStationCode) {
-        return byteArrayToInt(rawStationCode);
+    public static int getTransactionCode(byte[] rawTransactionCode) {
+        return byteArrayToInt(rawTransactionCode);
     }
 
-    public static Transaction getTransaction(byte[] rawStationCode) {
-        return Transaction.getTransaction(getTransactionCode(rawStationCode));
+    public static Transaction getTransaction(byte[] rawTransactionCode) {
+        byte[] expandedRawTransactionCode = new byte[4];
+        System.arraycopy(
+                rawTransactionCode,
+                0,
+                expandedRawTransactionCode,
+                TRANSACTION_CODE_OFFSET,
+                rawTransactionCode.length
+        );
+        return Transaction.getTransaction(getTransactionCode(expandedRawTransactionCode));
     }
 }

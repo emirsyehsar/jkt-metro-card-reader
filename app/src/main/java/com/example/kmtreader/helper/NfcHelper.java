@@ -19,6 +19,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 public class NfcHelper {
@@ -40,6 +41,8 @@ public class NfcHelper {
     private static final int RESPONSE_DATA_START_INDEX = 13;
     private static final int BLOCK_LIST_COMMAND = 128;
 
+    private static final long TIMESTAMP_IN_MS = 1000;
+
     private Activity mActivity;
     private Intent mFirstIntent;
     private IntentFilter[] mIntentFilters;
@@ -51,7 +54,7 @@ public class NfcHelper {
 
     private String[][] mTechList;
 
-    private ArrayList<History> mHistories = new ArrayList<>();
+    private List<History> mHistories = new ArrayList<>();
 
     public NfcHelper(Activity activity) {
         this.mActivity = activity;
@@ -82,7 +85,7 @@ public class NfcHelper {
         return mCardNumber;
     }
 
-    public ArrayList<History> getHistories() {
+    public List<History> getHistories() {
         return mHistories;
     }
 
@@ -152,13 +155,13 @@ public class NfcHelper {
                     byte[] cardNumberResult = nfcF.transceive(cardNumberCommand);
                     processCardNumber(cardNumberResult);
                 }
-//                if (historySystemCode.length != 0) {
-//                    byte[] historyCommand = readWithoutEncryption(targetIdm, 15, historySystemCode);
-//                    byte[] historyFinalBlockCommand = readWithoutEncryptionByBlock(targetIdm, FIFTEEN_BLOCK, historySystemCode);
-//                    byte[] historyResult = nfcF.transceive(historyCommand);
-//                    byte[] historyFinalBlockResult = nfcF.transceive(historyFinalBlockCommand);
-//                    processHistory(historyResult, historyFinalBlockResult);
-//                }
+                if (historySystemCode.length != 0) {
+                    byte[] historyCommand = readWithoutEncryption(targetIdm, 15, historySystemCode);
+                    byte[] historyFinalBlockCommand = readWithoutEncryptionByBlock(targetIdm, FIFTEEN_BLOCK, historySystemCode);
+                    byte[] historyResult = nfcF.transceive(historyCommand);
+                    byte[] historyFinalBlockResult = nfcF.transceive(historyFinalBlockCommand);
+                    processHistory(historyResult, historyFinalBlockResult);
+                }
             }
             nfcF.close();
         } catch (IOException iOException) {
@@ -246,16 +249,17 @@ public class NfcHelper {
             byte[] rawTimestamp = Arrays.copyOfRange(rawHistoryAllBlocks, i, i + 4);
             byte[] rawBalanceChange = Arrays.copyOfRange(rawHistoryAllBlocks, i + 4, i + 8);
             byte[] rawTransactionCode = Arrays.copyOfRange(rawHistoryAllBlocks, i + 8, i + 10);
-            byte[] rawStationCode = Arrays.copyOfRange(rawHistoryAllBlocks, i + 10, i + 11);
-            byte[] rawCreditType = Arrays.copyOfRange(rawHistoryAllBlocks, i + 12, i + 13);
+            byte[] rawCreditType = Arrays.copyOfRange(rawHistoryAllBlocks, i + 10, i + 11);
+//            byte[] rawStationCode = Arrays.copyOfRange(rawHistoryAllBlocks, i + 10, i + 11);
+//            byte[] rawCreditType = Arrays.copyOfRange(rawHistoryAllBlocks, i + 12, i + 13);
             String journeyDate = MultripUtil.getJourneyDate(rawTimestamp);
             if (journeyDate != null) {
                 History history = new History();
                 history.setJourneyDate(journeyDate);
-                history.setTimestamp(MultripUtil.getEpochTime(rawTimestamp));
+                history.setTimestamp(MultripUtil.getEpochTime(rawTimestamp) * TIMESTAMP_IN_MS);
                 history.setBalanceChange(MultripUtil.getBalanceChange(rawBalanceChange));
                 history.setCredit(MultripUtil.getCreditType(rawCreditType));
-                history.setStation(stationMap.get(MultripUtil.getStationCode(rawStationCode)));
+//                history.setStation(stationMap.get(MultripUtil.getStationCode(rawStationCode)));
                 history.setTransaction(MultripUtil.getTransaction(rawTransactionCode));
                 this.mHistories.add(history);
             }

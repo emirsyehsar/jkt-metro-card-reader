@@ -8,6 +8,10 @@ public enum Transaction {
 
     private String mTransactionType;
 
+    public String getTransactionType() {
+        return mTransactionType;
+    }
+
     Transaction(String transactionType) {
         mTransactionType = transactionType;
     }

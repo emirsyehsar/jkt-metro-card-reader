@@ -17,5 +17,7 @@
     <string name="readeractivity.label.lasttransaction">Transaksi terakhir:</string>
     <string name="readeractivity.label.rp">Rp%d</string>
     <string name="readeractivity.label.tapyourcard">Silahkan tap kartu KMT FeliCa Anda</string>
+    <string name="readeractivity.label.historymessage">Tidak ada riwayat transaksi pada kartu ini</string>
     <string name="readeractivity.title">Multrip Reader</string>
+
 </resources>
