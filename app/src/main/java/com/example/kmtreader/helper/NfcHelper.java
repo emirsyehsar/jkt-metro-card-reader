@@ -11,6 +11,7 @@ import android.widget.Toast;
 import com.example.kmtreader.R;
 import com.example.kmtreader.model.History;
 import com.example.kmtreader.model.enums.Station;
+import com.example.kmtreader.model.enums.Transaction;
 import com.example.kmtreader.util.MultripUtil;
 
 import java.io.ByteArrayOutputStream;
@@ -244,23 +245,28 @@ public class NfcHelper {
                 trimmedRawHistoryFinalBlock.length
         );
         mHistories.clear();
-        Map<Integer, Station> stationMap = Station.getStationMap();
+//        Map<Integer, Station> stationMap = Station.getStationMap();
         for (int i = 0; i < TOTAL_BLOCK_SIZE; i += BLOCK_SIZE) {
             byte[] rawTimestamp = Arrays.copyOfRange(rawHistoryAllBlocks, i, i + 4);
             byte[] rawBalanceChange = Arrays.copyOfRange(rawHistoryAllBlocks, i + 4, i + 8);
-            byte[] rawTransactionCode = Arrays.copyOfRange(rawHistoryAllBlocks, i + 8, i + 10);
-            byte[] rawCreditType = Arrays.copyOfRange(rawHistoryAllBlocks, i + 10, i + 11);
-//            byte[] rawStationCode = Arrays.copyOfRange(rawHistoryAllBlocks, i + 10, i + 11);
-//            byte[] rawCreditType = Arrays.copyOfRange(rawHistoryAllBlocks, i + 12, i + 13);
+//            byte[] rawStationCode = Arrays.copyOfRange(rawHistoryAllBlocks, i + 8, i + 10);
+            byte[] rawTransactionCode = Arrays.copyOfRange(rawHistoryAllBlocks, i + 10, i + 11);
+            byte[] rawCreditType = Arrays.copyOfRange(rawHistoryAllBlocks, i + 12, i + 13);
+            byte[] rawIsExternal = Arrays.copyOfRange(rawHistoryAllBlocks, i + 13, i + 14);
             String journeyDate = MultripUtil.getJourneyDate(rawTimestamp);
             if (journeyDate != null) {
                 History history = new History();
                 history.setJourneyDate(journeyDate);
                 history.setTimestamp(MultripUtil.getEpochTime(rawTimestamp) * TIMESTAMP_IN_MS);
                 history.setBalanceChange(MultripUtil.getBalanceChange(rawBalanceChange));
-                history.setCredit(MultripUtil.getCreditType(rawCreditType));
+                history.setCredit(MultripUtil.getBoolean(rawCreditType));
 //                history.setStation(stationMap.get(MultripUtil.getStationCode(rawStationCode)));
-                history.setTransaction(MultripUtil.getTransaction(rawTransactionCode));
+                boolean isExternal = MultripUtil.getBoolean(rawIsExternal);
+                if (isExternal) {
+                    history.setTransaction(Transaction.EXTERNAL_TRANSACTION);
+                } else {
+                    history.setTransaction(MultripUtil.getInternalTransaction(rawTransactionCode, rawCreditType));
+                }
                 this.mHistories.add(history);
             }
         }

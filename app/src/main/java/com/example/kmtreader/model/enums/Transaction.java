@@ -4,6 +4,7 @@ public enum Transaction {
     TICKET_BOOTH("LOKET"),
     TAP_OUT("TAP OUT"),
     TICKET_VENDING_MACHINE("TICKET VENDING MACHINE"),
+    EXTERNAL_TRANSACTION("TRANSAKSI EKSTERNAL"),
     UNKNOWN("TIDAK DIKETAHUI");
 
     private String mTransactionType;
@@ -16,15 +17,15 @@ public enum Transaction {
         mTransactionType = transactionType;
     }
 
-    public static Transaction getTransaction(int transactionTypeCode) {
+    public static Transaction getInternalTransaction(int transactionTypeCode) {
         switch (transactionTypeCode) {
             default:
                 return UNKNOWN;
-            case 272:
+            case 257:
                 return TAP_OUT;
-            case 288:
+            case 512:
                 return TICKET_BOOTH;
-            case 304:
+            case 256:
                 return TICKET_VENDING_MACHINE;
         }
     }

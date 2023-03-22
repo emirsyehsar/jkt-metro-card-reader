@@ -11,7 +11,7 @@ import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 public class MultripUtil {
-    private static final byte CREDIT_TYPE = 1;
+    private static final byte TRUE_BYTE_VALUE = 1;
 
     private static final int TRANSACTION_CODE_OFFSET = 2;
 
@@ -30,8 +30,8 @@ public class MultripUtil {
         return byteArrayToInt(rawBalanceChange);
     }
 
-    public static boolean getCreditType(byte[] rawCreditType) {
-        return rawCreditType[0] != CREDIT_TYPE;
+    public static boolean getBoolean(byte[] rawCreditType) {
+        return rawCreditType[0] == TRUE_BYTE_VALUE;
     }
 
     public static long getEpochTime(byte[] rawEpochTime) {
@@ -80,15 +80,20 @@ public class MultripUtil {
         return byteArrayToInt(rawTransactionCode);
     }
 
-    public static Transaction getTransaction(byte[] rawTransactionCode) {
-        byte[] expandedRawTransactionCode = new byte[4];
-        System.arraycopy(
-                rawTransactionCode,
-                0,
-                expandedRawTransactionCode,
-                TRANSACTION_CODE_OFFSET,
-                rawTransactionCode.length
+    public static Transaction getInternalTransaction(byte[] rawTransactionCode, byte[] rawCreditType) {
+        byte[] combinedTransactionAndCreditCode = new byte[4];
+        combinedTransactionAndCreditCode[2] = rawTransactionCode[0];
+        combinedTransactionAndCreditCode[3] = rawCreditType[0];
+//        byte[] expandedRawTransactionCode = new byte[4];
+//        System.arraycopy(
+//                rawTransactionCode,
+//                0,
+//                expandedRawTransactionCode,
+//                TRANSACTION_CODE_OFFSET,
+//                rawTransactionCode.length
+//        );
+        return Transaction.getInternalTransaction(
+                getTransactionCode(combinedTransactionAndCreditCode)
         );
-        return Transaction.getTransaction(getTransactionCode(expandedRawTransactionCode));
     }
 }
