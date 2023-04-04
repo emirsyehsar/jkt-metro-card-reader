@@ -9,30 +9,40 @@ import android.nfc.tech.NfcF;
 import android.widget.Toast;
 
 import com.example.kmtreader.R;
+import com.example.kmtreader.model.History;
+import com.example.kmtreader.model.enums.Station;
+import com.example.kmtreader.model.enums.Transaction;
+import com.example.kmtreader.util.MultripUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 public class NfcHelper {
 
-    public static final long SERIAL_VERSION_UID = 0L;
-
-    private static final byte[] BALANCE_SERVICE_CODE = new byte[] { 16, 23 };
-    private static final byte[] CHIKATETSU_BALANCE_SERVICE_CODE = new byte[] { 16, (byte) 215 };
-    //private static final byte[] CARD_NUMBER_SERVICE_CODE = { 48, 11 };
-    //private static final byte[] HISTORY_SERVICE_CODE = new byte[] { 32, 15 };
-    private static final byte[] TSUUKIN_SYSTEM_CODE = new byte[] { -112, -73 };
-    private static final byte[] CHIKATETSU_SYSTEM_CODE = new byte[] { -109, (byte) -141 };
+    private static final byte[] COMMUTER_HISTORY_SERVICE_CODE = new byte[] { 32, 15 };
+    private static final byte[] COMMUTER_SYSTEM_CODE = new byte[] { -112, -73 };
+    private static final byte[] METRO_SYSTEM_CODE = new byte[] { -109, (byte) -141 };
+    private static final byte[] COMMUTER_CARD_NUMBER_SERVICE_CODE = { 48, 11 };
+    private static final byte[] COMMUTER_BALANCE_SERVICE_CODE = new byte[] { 16, 23 };
+    private static final byte[] METRO_BALANCE_SERVICE_CODE = new byte[] { 16, (byte) 215 };
 
     private static final byte READ_WITHOUT_ENCRYPTION_COMMAND = 6;
 
     private static final int FIFTEEN_BLOCK = 15;
     private static final int MAX_ALLOCATED_BYTE_BUFFER = 100;
     private static final int SINGLE_BLOCK = 1;
-    private static final int SIXTEEN_BLOCK = 16;
+    private static final int BLOCK_SIZE = 16;
+    private static final int TOTAL_BLOCK_SIZE = 256;
+    private static final int RESPONSE_DATA_START_INDEX = 13;
+    private static final int BLOCK_LIST_COMMAND = 128;
+
+    private static final long TIMESTAMP_IN_MS = 1000;
 
     private Activity mActivity;
     private Intent mFirstIntent;
@@ -45,7 +55,7 @@ public class NfcHelper {
 
     private String[][] mTechList;
 
-    //private ArrayList<History> mHistories = new ArrayList<History>();
+    private List<History> mHistories = new ArrayList<>();
 
     public NfcHelper(Activity activity) {
         this.mActivity = activity;
@@ -68,100 +78,6 @@ public class NfcHelper {
         }
     }
 
-    private byte[] getIdmCommand(byte[] systemCode) {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(MAX_ALLOCATED_BYTE_BUFFER);
-        byteArrayOutputStream.write(0);
-        byteArrayOutputStream.write(0);
-        byteArrayOutputStream.write(systemCode[0]);
-        byteArrayOutputStream.write(systemCode[1]);
-        byteArrayOutputStream.write(1);
-        byteArrayOutputStream.write(15);
-        byte[] idmCommand = byteArrayOutputStream.toByteArray();
-        idmCommand[0] = (byte)systemCode.length;
-        return idmCommand;
-    }
-
-    private void processBalance(byte[] balanceRawByte) {
-        byte[] unknownByte = Arrays.copyOfRange(balanceRawByte, 13, balanceRawByte.length);
-        byte[] balanceByte = Arrays.copyOfRange(unknownByte, 0, 4);
-        byte[] arrayOfByte = Arrays.copyOfRange(unknownByte, 4, 8);
-        int balance = ByteBuffer.wrap(balanceByte).order(ByteOrder.LITTLE_ENDIAN).getInt();
-        int lastTransaction = ByteBuffer.wrap(arrayOfByte).order(ByteOrder.LITTLE_ENDIAN).getInt();
-        this.mBalance = this.mActivity.getString(R.string.readeractivity_label_rp, balance);
-        this.mLastTransaction = this.mActivity.getString(R.string.readeractivity_label_rp, lastTransaction);
-    }
-
-    /*private void processCardNumber(byte[] paramArrayOfbyte) {
-        this.mCardNumber = (new String(Arrays.copyOfRange(paramArrayOfbyte, 13, paramArrayOfbyte.length))).trim();
-    }*/
-
-    /*private void processHistory(byte[] paramArrayOfbyte1, byte[] paramArrayOfbyte2) {
-        byte[] arrayOfByte = Arrays.copyOfRange(paramArrayOfbyte1, 13, paramArrayOfbyte1.length);
-        paramArrayOfbyte2 = Arrays.copyOfRange(paramArrayOfbyte2, 13, paramArrayOfbyte2.length);
-        paramArrayOfbyte1 = new byte[arrayOfByte.length + paramArrayOfbyte2.length];
-        System.arraycopy(arrayOfByte, 0, paramArrayOfbyte1, 0, arrayOfByte.length);
-        System.arraycopy(paramArrayOfbyte2, 0, paramArrayOfbyte1, arrayOfByte.length, paramArrayOfbyte2.length);
-        this.mHistories.clear();
-        int i = 0;
-        while (true) {
-            if (i < 256) {
-                paramArrayOfbyte2 = Arrays.copyOfRange(paramArrayOfbyte1, i, i + 4);
-                arrayOfByte = Arrays.copyOfRange(paramArrayOfbyte1, i + 4, i + 8);
-                byte[] arrayOfByte1 = Arrays.copyOfRange(paramArrayOfbyte1, i + 8, i + 10);
-                byte[] arrayOfByte2 = Arrays.copyOfRange(paramArrayOfbyte1, i + 10, i + 11);
-                byte[] arrayOfByte3 = Arrays.copyOfRange(paramArrayOfbyte1, i + 12, i + 13);
-                String str = MultripUtil.getJourneyDate(paramArrayOfbyte2);
-                if (str != null) {
-                    History history = new History();
-                    history.setJourneyDate(str);
-                    history.setTimestamp(MultripUtil.getEpochTime(paramArrayOfbyte2));
-                    history.setBalanceChange(MultripUtil.getBalanceChange(arrayOfByte));
-                    history.setCredit(MultripUtil.getCreditType(arrayOfByte3));
-                    history.setStationCode(MultripUtil.getStationCode(arrayOfByte2));
-                    history.setTransactionCode(MultripUtil.getTransactionCode(arrayOfByte1));
-                    this.mHistories.add(history);
-                }
-                i += 16;
-                continue;
-            }
-            return;
-        }
-    }*/
-
-    private byte[] readWithoutEncryption(byte[] idm, int blockLength, byte[] serviceCode) throws IOException {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(100);
-        byteArrayOutputStream.write(0);
-        byteArrayOutputStream.write(6);
-        byteArrayOutputStream.write(idm);
-        byteArrayOutputStream.write(1);
-        byteArrayOutputStream.write(serviceCode[1]);
-        byteArrayOutputStream.write(serviceCode[0]);
-        byteArrayOutputStream.write(blockLength);
-        for (int i = 0; i < blockLength; i++) {
-            byteArrayOutputStream.write(128);
-            byteArrayOutputStream.write(i);
-        }
-        byte[] result = byteArrayOutputStream.toByteArray();
-        result[0] = (byte)result.length;
-        return result;
-    }
-
-    private byte[] readWithoutEncryptionByBlock(byte[] idm, int blockLength, byte[] serviceCode) throws IOException {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(100);
-        byteArrayOutputStream.write(0);
-        byteArrayOutputStream.write(6);
-        byteArrayOutputStream.write(idm);
-        byteArrayOutputStream.write(1);
-        byteArrayOutputStream.write(serviceCode[1]);
-        byteArrayOutputStream.write(serviceCode[0]);
-        byteArrayOutputStream.write(1);
-        byteArrayOutputStream.write(128);
-        byteArrayOutputStream.write(blockLength);
-        byte[] result = byteArrayOutputStream.toByteArray();
-        result[0] = (byte)result.length;
-        return result;
-    }
-
     public String getBalance() {
         return mBalance;
     }
@@ -170,10 +86,9 @@ public class NfcHelper {
         return mCardNumber;
     }
 
-    /*public ArrayList<History> getHistories() {
-        IncrementalChange incrementalChange = $change;
-        return (incrementalChange != null) ? (ArrayList<History>)incrementalChange.access$dispatch("getHistories.()Ljava/util/ArrayList;", new Object[] { this }) : this.mHistories;
-    }*/
+    public List<History> getHistories() {
+        return mHistories;
+    }
 
     public IntentFilter[] getIntentFilters() {
         return mIntentFilters;
@@ -201,40 +116,202 @@ public class NfcHelper {
     public void handleTag(Tag paramTag) {
         NfcF nfcF = NfcF.get(paramTag);
         byte[] systemCode = nfcF.getSystemCode();
-        if (systemCode[0] != CHIKATETSU_SYSTEM_CODE[0] && systemCode[1] != CHIKATETSU_SYSTEM_CODE[1]) {
-            this.mActivity.runOnUiThread(new Runnable() {
-
-                public void run() {
-                    Toast.makeText(mActivity, mActivity.getString(R.string.readeractivity_error_notkmt), Toast.LENGTH_SHORT).show();
-                }
-            });
-            return;
+        if (systemCode[0] == METRO_SYSTEM_CODE[0] && systemCode[1] == METRO_SYSTEM_CODE[1]) {
+            readCard(nfcF, systemCode, METRO_BALANCE_SERVICE_CODE, new byte[0], new byte[0]);
+        } else if (systemCode[0] == COMMUTER_SYSTEM_CODE[0] && systemCode[1] == COMMUTER_SYSTEM_CODE[1]) {
+            readCard(
+                    nfcF,
+                    systemCode,
+                    COMMUTER_BALANCE_SERVICE_CODE,
+                    COMMUTER_CARD_NUMBER_SERVICE_CODE,
+                    COMMUTER_HISTORY_SERVICE_CODE
+            );
+        } else {
+            this.mActivity.runOnUiThread(() -> Toast.makeText(
+                    mActivity,
+                    mActivity.getString(R.string.readeractivity_error_notkmt),
+                    Toast.LENGTH_SHORT
+            ).show());
         }
+    }
+
+    private void readCard(
+            NfcF nfcF,
+            byte[] systemCode,
+            byte[] balanceSystemCode,
+            byte[] cardNumberSystemCode,
+            byte[] historySystemCode
+    ) {
         try {
             nfcF.connect();
             nfcF.setTimeout(5000);
             if (nfcF.isConnected()) {
                 byte[] targetIdm = Arrays.copyOfRange(nfcF.transceive(getIdmCommand(systemCode)), 2, 10);
-                //byte[] arrayOfByte2 = readWithoutEncryption(arrayOfByte1, 1, CARD_NUMBER_SERVICE_CODE);
-                byte[] balanceCommand = readWithoutEncryption(targetIdm, SINGLE_BLOCK, CHIKATETSU_BALANCE_SERVICE_CODE);
-                //arrayOfByte = readWithoutEncryption(arrayOfByte1, 15, HISTORY_SERVICE_CODE);
-                //arrayOfByte1 = readWithoutEncryptionByBlock(arrayOfByte1, 15, HISTORY_SERVICE_CODE);
-                //arrayOfByte2 = nfcF.transceive(arrayOfByte2);
+                byte[] balanceCommand = readWithoutEncryption(targetIdm, SINGLE_BLOCK, balanceSystemCode);
                 byte[] balanceResult = nfcF.transceive(balanceCommand);
-                //systemCode = nfcF.transceive(systemCode);
-                //arrayOfByte1 = nfcF.transceive(arrayOfByte1);
-                //processCardNumber(arrayOfByte2);
                 processBalance(balanceResult);
-                //processHistory(arrayOfByte, arrayOfByte1);
+
+                if (cardNumberSystemCode.length != 0) {
+                    byte[] cardNumberCommand = readWithoutEncryption(targetIdm, SINGLE_BLOCK, cardNumberSystemCode);
+                    byte[] cardNumberResult = nfcF.transceive(cardNumberCommand);
+                    processCardNumber(cardNumberResult);
+                }
+                if (historySystemCode.length != 0) {
+                    byte[] historyCommand = readWithoutEncryption(targetIdm, 15, historySystemCode);
+                    byte[] historyFinalBlockCommand = readWithoutEncryptionByBlock(targetIdm, FIFTEEN_BLOCK, historySystemCode);
+                    byte[] historyResult = nfcF.transceive(historyCommand);
+                    byte[] historyFinalBlockResult = nfcF.transceive(historyFinalBlockCommand);
+                    processHistory(historyResult, historyFinalBlockResult);
+                }
             }
             nfcF.close();
         } catch (IOException iOException) {
             iOException.printStackTrace();
-            this.mActivity.runOnUiThread(new Runnable() {
-                public void run() {
-                    Toast.makeText(mActivity, mActivity.getString(R.string.readeractivity_error_ioexception), Toast.LENGTH_SHORT).show();
-                }
-            });
+            this.mActivity.runOnUiThread(() -> Toast.makeText(
+                    mActivity,
+                    mActivity.getString(R.string.readeractivity_error_ioexception),
+                    Toast.LENGTH_SHORT
+            ).show());
         }
+    }
+
+    private byte[] getIdmCommand(byte[] systemCode) {
+        ByteArrayOutputStream byteArrayOutputStream =
+                new ByteArrayOutputStream(MAX_ALLOCATED_BYTE_BUFFER);
+        byteArrayOutputStream.write(0);
+        byteArrayOutputStream.write(0);
+        byteArrayOutputStream.write(systemCode[0]);
+        byteArrayOutputStream.write(systemCode[1]);
+        byteArrayOutputStream.write(1);
+        byteArrayOutputStream.write(15);
+        byte[] idmCommand = byteArrayOutputStream.toByteArray();
+        idmCommand[0] = (byte)systemCode.length;
+        return idmCommand;
+    }
+
+    private void processBalance(byte[] balanceBlock) {
+        byte[] trimmedBalanceBlock = Arrays.copyOfRange(
+                balanceBlock,
+                RESPONSE_DATA_START_INDEX,
+                balanceBlock.length
+        );
+        byte[] rawBalanceByte = Arrays.copyOfRange(trimmedBalanceBlock, 0, 4);
+        byte[] rawLastTransaction = Arrays.copyOfRange(trimmedBalanceBlock, 4, 8);
+        int balance = ByteBuffer.wrap(rawBalanceByte).order(ByteOrder.LITTLE_ENDIAN).getInt();
+        int lastTransaction = ByteBuffer.wrap(rawLastTransaction)
+                .order(ByteOrder.LITTLE_ENDIAN)
+                .getInt();
+        this.mBalance = this.mActivity.getString(R.string.readeractivity_label_rp, balance);
+        this.mLastTransaction = this.mActivity.getString(
+                R.string.readeractivity_label_rp,
+                lastTransaction
+        );
+    }
+
+    private void processCardNumber(byte[] cardNumberRawByte) {
+        this.mCardNumber = (new String(Arrays.copyOfRange(
+                cardNumberRawByte,
+                RESPONSE_DATA_START_INDEX,
+                cardNumberRawByte.length
+        ))).trim();
+    }
+
+    private void processHistory(byte[] rawHistoryBlocks, byte[] rawHistoryFinalBlocks) {
+        byte[] trimmedRawHistoryBlocks = Arrays.copyOfRange(
+                rawHistoryBlocks,
+                RESPONSE_DATA_START_INDEX,
+                rawHistoryBlocks.length
+        );
+        byte[] trimmedRawHistoryFinalBlock = Arrays.copyOfRange(
+                rawHistoryFinalBlocks,
+                RESPONSE_DATA_START_INDEX,
+                rawHistoryFinalBlocks.length
+        );
+        byte[] rawHistoryAllBlocks = new byte[
+                trimmedRawHistoryBlocks.length + trimmedRawHistoryFinalBlock.length
+                ];
+        System.arraycopy(
+                trimmedRawHistoryBlocks,
+                0,
+                rawHistoryAllBlocks,
+                0,
+                trimmedRawHistoryBlocks.length
+        );
+        System.arraycopy(
+                trimmedRawHistoryFinalBlock,
+                0,
+                rawHistoryAllBlocks,
+                trimmedRawHistoryBlocks.length,
+                trimmedRawHistoryFinalBlock.length
+        );
+        mHistories.clear();
+//        Map<Integer, Station> stationMap = Station.getStationMap();
+        for (int i = 0; i < TOTAL_BLOCK_SIZE; i += BLOCK_SIZE) {
+            byte[] rawTimestamp = Arrays.copyOfRange(rawHistoryAllBlocks, i, i + 4);
+            byte[] rawBalanceChange = Arrays.copyOfRange(rawHistoryAllBlocks, i + 4, i + 8);
+//            byte[] rawStationCode = Arrays.copyOfRange(rawHistoryAllBlocks, i + 8, i + 10);
+            byte[] rawTransactionCode = Arrays.copyOfRange(rawHistoryAllBlocks, i + 10, i + 11);
+            byte[] rawCreditType = Arrays.copyOfRange(rawHistoryAllBlocks, i + 12, i + 13);
+            byte[] rawIsExternal = Arrays.copyOfRange(rawHistoryAllBlocks, i + 13, i + 14);
+            String journeyDate = MultripUtil.getJourneyDate(rawTimestamp);
+            if (journeyDate != null) {
+                History history = new History();
+                history.setJourneyDate(journeyDate);
+                history.setTimestamp(MultripUtil.getEpochTime(rawTimestamp) * TIMESTAMP_IN_MS);
+                history.setBalanceChange(MultripUtil.getBalanceChange(rawBalanceChange));
+                history.setCredit(MultripUtil.getBoolean(rawCreditType));
+//                history.setStation(stationMap.get(MultripUtil.getStationCode(rawStationCode)));
+                boolean isExternal = MultripUtil.getBoolean(rawIsExternal);
+                if (isExternal) {
+                    history.setTransaction(Transaction.EXTERNAL_TRANSACTION);
+                } else {
+                    history.setTransaction(MultripUtil.getInternalTransaction(rawTransactionCode, rawCreditType));
+                }
+                this.mHistories.add(history);
+            }
+        }
+    }
+
+    private byte[] readWithoutEncryption(byte[] idm, int blockLength, byte[] serviceCode)
+            throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream =
+                new ByteArrayOutputStream(MAX_ALLOCATED_BYTE_BUFFER);
+        //Read Without Encryption Command Code: 0x06
+        byteArrayOutputStream.write(0);
+        byteArrayOutputStream.write(READ_WITHOUT_ENCRYPTION_COMMAND);
+        byteArrayOutputStream.write(idm);
+        //Read Without Encryption Number of Service: 1
+        byteArrayOutputStream.write(1);
+        //Read Without Encryption Service Code (Based on total service above)
+        byteArrayOutputStream.write(serviceCode[1]);
+        byteArrayOutputStream.write(serviceCode[0]);
+        byteArrayOutputStream.write(blockLength);
+        for (int i = 0; i < blockLength; i++) {
+            byteArrayOutputStream.write(BLOCK_LIST_COMMAND);
+            byteArrayOutputStream.write(i); //Block Index
+        }
+        byte[] result = byteArrayOutputStream.toByteArray();
+        result[0] = (byte)result.length;
+        return result;
+    }
+
+    private byte[] readWithoutEncryptionByBlock(byte[] idm, int blockLength, byte[] serviceCode)
+            throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream =
+                new ByteArrayOutputStream(MAX_ALLOCATED_BYTE_BUFFER);
+        //Read Without Encryption Command Code: 0x06
+        byteArrayOutputStream.write(0);
+        byteArrayOutputStream.write(READ_WITHOUT_ENCRYPTION_COMMAND);
+        byteArrayOutputStream.write(idm);
+        //Read Without Encryption Number of Service: 1
+        byteArrayOutputStream.write(1);
+        byteArrayOutputStream.write(serviceCode[1]);
+        byteArrayOutputStream.write(serviceCode[0]);
+        byteArrayOutputStream.write(1); //Block Length
+        byteArrayOutputStream.write(BLOCK_LIST_COMMAND);
+        byteArrayOutputStream.write(blockLength); //Block Index
+        byte[] result = byteArrayOutputStream.toByteArray();
+        result[0] = (byte)result.length;
+        return result;
     }
 }

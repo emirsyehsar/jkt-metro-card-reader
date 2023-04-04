@@ -9,6 +9,10 @@ import androidx.fragment.app.FragmentStatePagerAdapter;
 import com.example.kmtreader.fragment.BalanceFragment;
 import com.example.kmtreader.fragment.HistoryFragment;
 import com.example.kmtreader.model.Balance;
+import com.example.kmtreader.model.History;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ViewPagerAdapter extends FragmentStatePagerAdapter {
 
@@ -28,7 +32,7 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
 
     @Override
     public Fragment getItem(int position) {
-        if (position == 0) {
+        if (position == BALANCE_POSITION) {
             return BalanceFragment.newInstance();
         } else {
             return HistoryFragment.newInstance();
@@ -37,16 +41,12 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
 
     @Override
     public CharSequence getPageTitle(int position) {
-        if (position == 0) {
-            return "BALANCE";
-        } else {
-            return "HISTORY";
-        }
+        return TITLES[position];
     }
 
     @Override
     public int getCount() {
-        return 2;
+        return TAB_COUNT;
     }
 
     @Override
@@ -62,14 +62,11 @@ public class ViewPagerAdapter extends FragmentStatePagerAdapter {
         return fragment;
     }
 
-    /*public void setHistoryResult(ArrayList<History> paramArrayList) {
-        IncrementalChange incrementalChange = $change;
-        if (incrementalChange != null) {
-            incrementalChange.access$dispatch("setHistoryResult.(Ljava/util/ArrayList;)V", new Object[] { this, paramArrayList });
-            return;
-        }
-        this.mHistoryFragment.setHistoryResult(paramArrayList);
-    }*/
+    public void setHistoryResult(List<History> historyList) {
+        //TODO EMIR : 28-2-2020 PLEASE REMOVE THIS AFTER HISTORY UI IS READY. FOR DEBUG PURPOSE ONLY
+        //ArrayList<History> anotherHistoryList = historyList;
+        this.mHistoryFragment.setHistoryResult(historyList);
+    }
 
     public void setMessage(String message) {
         this.mMessage = message;
