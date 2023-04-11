@@ -11,7 +11,6 @@ import com.example.kmtreader.fragment.HistoryFragment;
 import com.example.kmtreader.model.Balance;
 import com.example.kmtreader.model.History;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ViewPagerAdapter extends FragmentStatePagerAdapter {

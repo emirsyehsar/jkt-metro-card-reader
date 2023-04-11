@@ -58,10 +58,11 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
     override fun onTagDiscovered(tag: Tag?) {
         try {
             mNfcHelper.handleTag(tag)
-            var balance = Balance()
-            balance.cardNumber = mNfcHelper.cardNumber
-            balance.balance = mNfcHelper.balance
-            balance.lastTransaction = mNfcHelper.lastTransaction
+            val balance = Balance(
+                mNfcHelper.balance,
+                mNfcHelper.cardNumber,
+                mNfcHelper.lastTransaction
+            )
             runOnUiThread {
                 viewPagerAdapter.setReadResult(balance)
                 viewPagerAdapter.setHistoryResult(mNfcHelper.histories)

@@ -10,7 +10,6 @@ import android.widget.Toast;
 
 import com.example.kmtreader.R;
 import com.example.kmtreader.model.History;
-import com.example.kmtreader.model.enums.Station;
 import com.example.kmtreader.model.enums.Transaction;
 import com.example.kmtreader.util.MultripUtil;
 
@@ -21,7 +20,6 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 public class NfcHelper {
 
@@ -255,18 +253,21 @@ public class NfcHelper {
             byte[] rawIsExternal = Arrays.copyOfRange(rawHistoryAllBlocks, i + 13, i + 14);
             String journeyDate = MultripUtil.getJourneyDate(rawTimestamp);
             if (journeyDate != null) {
-                History history = new History();
-                history.setJourneyDate(journeyDate);
-                history.setTimestamp(MultripUtil.getEpochTime(rawTimestamp) * TIMESTAMP_IN_MS);
-                history.setBalanceChange(MultripUtil.getBalanceChange(rawBalanceChange));
-                history.setCredit(MultripUtil.getBoolean(rawCreditType));
-//                history.setStation(stationMap.get(MultripUtil.getStationCode(rawStationCode)));
                 boolean isExternal = MultripUtil.getBoolean(rawIsExternal);
+                Transaction transaction;
                 if (isExternal) {
-                    history.setTransaction(Transaction.EXTERNAL_TRANSACTION);
+                    transaction = Transaction.EXTERNAL_TRANSACTION;
                 } else {
-                    history.setTransaction(MultripUtil.getInternalTransaction(rawTransactionCode, rawCreditType));
+                    transaction = MultripUtil.getInternalTransaction(rawTransactionCode, rawCreditType);
                 }
+                History history = new History(
+                        MultripUtil.getBalanceChange(rawBalanceChange),
+                        MultripUtil.getBoolean(rawCreditType),
+                        journeyDate,
+                        null,
+                        MultripUtil.getEpochTime(rawTimestamp) * TIMESTAMP_IN_MS,
+                        transaction
+                );
                 this.mHistories.add(history);
             }
         }

@@ -57,7 +57,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
         String time = simpleDateFormat.format(new Date(historyList.get(position).getTimestamp()));
         holder.getTxtTime().setText(time);
 
-        String balanceChangeSign = historyList.get(position).isCredit() ? "-Rp%d" : "+Rp%d";
+        String balanceChangeSign = historyList.get(position).getCredit() ? "-Rp%d" : "+Rp%d";
         String balanceChange = String.format(balanceChangeSign, historyList.get(position).getBalanceChange());
         holder.getTxtBalanceChange().setText(balanceChange);
 
